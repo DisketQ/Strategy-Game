@@ -234,12 +234,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 208f84be8a1723f49987003013c3650a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridSizeX: 100
-  gridSizeY: 100
+  gridSizeX: 5
+  gridSizeY: 5
   cellDiameter: 1
   bottomLeftCorner: {x: -12, y: -12}
   isCentered: 1
-  ThreadSize: 20
+  ThreadSize: 1
 --- !u!4 &1949892000
 Transform:
   m_ObjectHideFlags: 0

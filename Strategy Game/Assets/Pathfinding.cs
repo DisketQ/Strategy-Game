@@ -44,12 +44,7 @@ public class Pathfinding : MonoBehaviour
 
             TargetPosition = worldPos;
 
-            for (int i = 0; i < GridReference.ThreadSize; i++)
-            {
-
-               FindPath(StartPosition, TargetPosition, i);//Find a path to the goal
-
-            }
+            TestAsync();
             
 
         }
@@ -65,10 +60,15 @@ public class Pathfinding : MonoBehaviour
 
     }
 
-    public async void FindPath(Vector3 _startPos, Vector3 _targetPos, int _threadIndex)
+    public async void TestAsync() 
     {
+       List<Cell> asd = await Task.Run(() => {return FindPathAsync(StartPosition, TargetPosition, 0); }); //Find a path to the goal
 
+        UnityEngine.Debug.Log(asd.Count);
 
+    }
+    public async Task<List<Cell>> FindPathAsync(Vector3 _startPos, Vector3 _targetPos, int _threadIndex)
+    {
 
         Cell startCell = GridReference.WorldPositionToCell(_startPos); //Gets the closest cell to the starting position
         Cell targetCell = GridReference.WorldPositionToCell(_targetPos); //Gets the closest cell to the target position
@@ -79,10 +79,8 @@ public class Pathfinding : MonoBehaviour
         openList.Add(startCell);//Add the starting Cell to the open list to begin the program
 
 
-        List<Cell> pathList = await Task.Run(() => 
+        var pathList = await Task.Run(() => 
         {
-
-            pathList = new List<Cell>(); 
 
             while (openList.Count > 0)//Whilst there is something in the open list
             {
@@ -92,11 +90,7 @@ public class Pathfinding : MonoBehaviour
 
                 if (currentCell == targetCell)//If the current Cell is the same as the target Cell
                 {
-                    pathList = GetFinalPath(startCell, targetCell, _threadIndex);//Calculate the final path
-
-                    UnityEngine.Debug.Log(pathList.Count);
-
-                    return pathList;
+                    return GetFinalPath(startCell, targetCell, _threadIndex);//Calculate the final path
 
                 }
 
@@ -130,17 +124,11 @@ public class Pathfinding : MonoBehaviour
 
             }
 
-            return pathList;
+            return GetFinalPath(startCell, targetCell, _threadIndex);
 
         });
 
-
-        //TEST
-
-
-            
-
-
+        return pathList;
 
     }
 
@@ -167,49 +155,4 @@ public class Pathfinding : MonoBehaviour
 
 }
 
-
-public class PathfindingCell : IHeapItem<PathfindingCell>
-{
-
-    //Pathfinding is using arrays to work simultaneously
-
-    public int[] gCost; //Distance between start of the path and this cell
-    public int[] hCost; //Distance between end of the path and this cell
-    public int[] fCost; // gCost + hCost
-
-    public PathfindingCell[] previousCellOnPath; //Used to record previous path in pathfinding
-
-    public int[] HeapIndex { get; set; } //Index in heap array
-
-    public PathfindingCell(int _gridX, int _gridY, int threadSize)
-    {
-
-        gCost = new int[threadSize];
-        hCost = new int[threadSize];
-        fCost = new int[threadSize];
-        previousCellOnPath = new PathfindingCell[threadSize];
-        HeapIndex = new int[threadSize];
-    }
-
-    public int CompareTo(PathfindingCell otherCell, int _threadIndex)
-    {
-        int compare = GetFCost(_threadIndex).CompareTo(otherCell.GetFCost(_threadIndex)); //First compare fCosts 
-
-        if (compare == 0) //Then if they are equal
-        {
-            compare = hCost[_threadIndex].CompareTo(otherCell.hCost[_threadIndex]); //Compare the hCosts
-        }
-        return -compare;
-
-
-    }
-
-    public int GetFCost(int threadIndex) //Calculate the F cost on the selected thread
-    {
-
-        return gCost[threadIndex] + hCost[threadIndex];
-
-    }
-
-}
 

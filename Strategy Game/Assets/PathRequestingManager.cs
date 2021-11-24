@@ -24,27 +24,52 @@ public class PathRequestingManager : MonoBehaviour
 
     }
 
-   
+    public void RequestPath()
+    {
+
+       
+
+    }
+
+    
 
 }
 
-public class PathCallSocket
+public class PathCallSocket //Class for calling and sending paths to receivers
 {
 
-    private bool socketOn;
+    private bool socketOn; //Is this socket currently working?
 
+    private IPathReceiver pathReceiver; //Receiver of the called path
+    
+    public void SwitchSocket(bool switchBool) //Change the socket bool
+    {
 
-    
-    public void SwitchSocket() 
-    { 
-    
+        socketOn = switchBool;
     
     }
+
+
+
+    public void SendPathToReceiver(List<Cell> _path)
+    {
+
+        pathReceiver.GetPath(_path); //Give the path to receiver
+
+        pathReceiver = null; //Remove the receiver
+
+        SwitchSocket(false); //Make the socket free
+
+    }
+
 
 }
 
 public interface IPathReceiver 
-{ 
+{
 
+    List<Cell> path { get; set; }
+
+    void GetPath(List<Cell> _path);
 
 }
