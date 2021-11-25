@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using GridSystem;
 
 public class CollisionGrid : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private GridSystem.Grid gridReference;
+    private void Awake()
     {
-        
+      gridReference = GameObject.FindGameObjectWithTag("GridObject").GetComponent<GridSystem.Grid>();
     }
 
     // Update is called once per frame
@@ -15,4 +16,24 @@ public class CollisionGrid : MonoBehaviour
     {
         
     }
+
 }
+
+public class CollisionCell
+{
+
+    UnitAI[] dynamicUnitArray;
+
+    public CollisionCell() 
+    {
+
+        dynamicUnitArray = new UnitAI[2];
+
+    }
+
+
+}
+
+
+
+

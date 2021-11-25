@@ -32,7 +32,7 @@ public class PathRequestingManager : MonoBehaviour
 
     private void Start()
     {
-        pathCallSocketArray = new PathCallSocket[gridReference.ThreadSize];
+        pathCallSocketArray = new PathCallSocket[GridSystem.Grid.threadSize];
 
         for (int i = 0; i < pathCallSocketArray.Length; i++)
         {
@@ -40,36 +40,7 @@ public class PathRequestingManager : MonoBehaviour
         }
     }
 
-
-    //TEST
-
-    public Vector2 StartPosition; //Starting position to pathfind from
-    public Vector2 TargetPosition; //Starting position to pathfind to
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Mouse0))
-        {
-
-            Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-            StartPosition = worldPos;
-
-        }
-
-
-        if (Input.GetKeyDown(KeyCode.Mouse1))
-        {
-
-            Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-            TargetPosition = worldPos;
-
-            TryPath(new TestClass(), StartPosition, TargetPosition);
-
-        }
-    }
-    //
+ 
     public void TryPath(IPathReceiver _pathReceiver, Vector3 _startPos, Vector3 _targetPos) //Check if the thread is busy in this method
     {
 
@@ -174,12 +145,6 @@ public class PathCallSocket //Class for calling and sending paths to receivers
     public void CallForPath(Pathfinding _pathFinding, IPathReceiver _pathReceiver,Vector3 _startPos, Vector3 _targetPos,Thread _workingThread, List<PathCallBox> _waitingCallList) 
     {
 
-        Stopwatch sw = new Stopwatch();
-
-        sw.Start();
-
-        //REMOVE TOP
-
         pathReceiver = _pathReceiver; //Assign the receiver
 
         workingThread = _workingThread; //Change the thread data
@@ -211,11 +176,6 @@ public class PathCallSocket //Class for calling and sending paths to receivers
 
         }
 
-        //REMOVE BOTTOM
-
-        sw.Stop();
-
-        UnityEngine.Debug.Log("Size: " + _path.Count + "  ms: " + sw.ElapsedMilliseconds);
 
     }
 
