@@ -74,11 +74,30 @@ namespace GridSystem
             return gridArray[Mathf.RoundToInt(gridIndex.x), Mathf.RoundToInt(gridIndex.y)];
         }
 
+        public Vector2 CellToWorldPosition(Cell _cell)
+        {
+
+            Vector2 gridIndex = new Vector2(_cell.gridX, _cell.gridY); //Take the grid index
+
+            Vector2 worldPosition = new Vector2(gridIndex.x * cellDiameter / 2 + cellDiameter / 2, gridIndex.y * cellDiameter / 2 + cellDiameter / 2);  // Multiply with radius
+
+            return GridToWorldMatrix(worldPosition); //Convert to world matrix
+
+        }
+
         public Vector2 WorldToGridMatrix(Vector2 _worldPosition) //Removes the world offset from given position 
         {
 
             Vector2 worldPositionWithoutOffset = _worldPosition - bottomLeftCorner;
             return worldPositionWithoutOffset;
+
+        }
+
+        public Vector2 GridToWorldMatrix(Vector2 _gridPosition) //Removes the world offset from given position 
+        {
+
+            Vector2 worldPositionWithOffset = _gridPosition + bottomLeftCorner;
+            return worldPositionWithOffset;
 
         }
         public List<Cell> GetNeighboringCells(Cell neighborCell)

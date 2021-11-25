@@ -174,7 +174,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 40
+  orthographic size: 400
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -215,6 +215,7 @@ GameObject:
   - component: {fileID: 1949892000}
   - component: {fileID: 1949891999}
   - component: {fileID: 1949892001}
+  - component: {fileID: 1949892002}
   m_Layer: 0
   m_Name: Grid
   m_TagString: Untagged
@@ -234,8 +235,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 208f84be8a1723f49987003013c3650a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridSizeX: 5
-  gridSizeY: 5
+  gridSizeX: 1000
+  gridSizeY: 1000
   cellDiameter: 1
   bottomLeftCorner: {x: -12, y: -12}
   isCentered: 1
@@ -264,6 +265,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d43375273736e584985cb8d6638819c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  StartPosition: {x: 0, y: 0}
+  TargetPosition: {x: 0, y: 0}
+--- !u!114 &1949892002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1949891998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db67ceee6e45f6b46b1ccde1fcb96f97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   StartPosition: {x: 0, y: 0}

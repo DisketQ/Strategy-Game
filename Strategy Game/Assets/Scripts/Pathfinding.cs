@@ -43,8 +43,6 @@ public class Pathfinding : MonoBehaviour
             Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
             TargetPosition = worldPos;
-
-            TestAsync();
             
 
         }
@@ -60,14 +58,8 @@ public class Pathfinding : MonoBehaviour
 
     }
 
-    public async void TestAsync() 
-    {
-       List<Cell> asd = await Task.Run(() => {return FindPathAsync(StartPosition, TargetPosition, 0); }); //Find a path to the goal
 
-        UnityEngine.Debug.Log(asd.Count);
-
-    }
-    public async Task<List<Cell>> FindPathAsync(Vector3 _startPos, Vector3 _targetPos, int _threadIndex)
+    public List<Cell> FindPath(Vector3 _startPos, Vector3 _targetPos, int _threadIndex)
     {
 
         Cell startCell = GridReference.WorldPositionToCell(_startPos); //Gets the closest cell to the starting position
@@ -78,61 +70,52 @@ public class Pathfinding : MonoBehaviour
 
         openList.Add(startCell);//Add the starting Cell to the open list to begin the program
 
-
-        var pathList = await Task.Run(() => 
+        while (openList.Count > 0)//Whilst there is something in the open list
         {
+            Cell currentCell = openList.RemoveFirst(); //Remove the first item in the heap then rearrange the rest
 
-            while (openList.Count > 0)//Whilst there is something in the open list
+            closedList.Add(currentCell);//And add it to the closed list
+
+            if (currentCell == targetCell)//If the current Cell is the same as the target Cell
             {
-                Cell currentCell = openList.RemoveFirst(); //Remove the first item in the heap then rearrange the rest
-
-                closedList.Add(currentCell);//And add it to the closed list
-
-                if (currentCell == targetCell)//If the current Cell is the same as the target Cell
-                {
-                    return GetFinalPath(startCell, targetCell, _threadIndex);//Calculate the final path
-
-                }
-
-                foreach (Cell neighborCell in GridReference.GetNeighboringCells(currentCell))//Loop through each neighbor of the current Cell
-                {
-
-
-                    if (neighborCell.terrainIndex == 1 || closedList.Contains(neighborCell))//If the neighbor is a wall or has already been checked
-                    {
-
-                        continue; //Skip it
-
-                    }
-                    int MoveCost = currentCell.gCost[_threadIndex] + GridMath.GetManhattenDistance(currentCell, neighborCell);//Get the F cost of that neighbor
-
-                    if (MoveCost < neighborCell.gCost[_threadIndex] || !openList.Contains(neighborCell))//If the f cost is greater than the g cost or it is not in the open list
-                    {
-                        neighborCell.gCost[_threadIndex] = MoveCost;//Set the g cost to the f cost
-                        neighborCell.hCost[_threadIndex] = GridMath.GetManhattenDistance(neighborCell, targetCell);//Set the h cost
-                        neighborCell.previousCellOnPath[_threadIndex] = currentCell;//Set the parent of the Cell for retracing steps
-
-                        if (!openList.Contains(neighborCell))//If the neighbor is not in the openlist
-                        {
-                            openList.Add(neighborCell); //Add it to the list
-                        }
-                        {
-                            openList.UpdateItem(neighborCell); //Update the item if it is in the list
-                        }
-                    }
-                }
+                return GetFinalPath(startCell, targetCell, _threadIndex);//Calculate the final path
 
             }
 
-            return GetFinalPath(startCell, targetCell, _threadIndex);
+            foreach (Cell neighborCell in GridReference.GetNeighboringCells(currentCell))//Loop through each neighbor of the current Cell
+            {
 
-        });
 
-        return pathList;
+                if (neighborCell.terrainIndex == 1 || closedList.Contains(neighborCell))//If the neighbor is a wall or has already been checked
+                {
 
+
+                    continue; //Skip it
+
+                }
+                int MoveCost = currentCell.gCost[_threadIndex] + GridMath.GetManhattenDistance(currentCell, neighborCell);//Get the F cost of that neighbor
+
+                if (MoveCost < neighborCell.gCost[_threadIndex] || !openList.Contains(neighborCell))//If the f cost is greater than the g cost or it is not in the open list
+                {
+                    neighborCell.gCost[_threadIndex] = MoveCost;//Set the g cost to the f cost
+                    neighborCell.hCost[_threadIndex] = GridMath.GetManhattenDistance(neighborCell, targetCell);//Set the h cost
+                    neighborCell.previousCellOnPath[_threadIndex] = currentCell;//Set the parent of the Cell for retracing steps
+
+                    if (!openList.Contains(neighborCell))//If the neighbor is not in the openlist
+                    {
+                        openList.Add(neighborCell); //Add it to the list
+                    }
+                    {
+                        openList.UpdateItem(neighborCell); //Update the item if it is in the list
+                    }
+                }
+            }
+
+            
+
+        }
+        return null;
     }
-
-
 
     List<Cell> GetFinalPath(Cell startingCell, Cell endCell, int _threadIndex)
     {
