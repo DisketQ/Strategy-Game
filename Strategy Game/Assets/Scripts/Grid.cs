@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.Mathematics;
-using static Unity.Mathematics.math;
 
 namespace GridSystem
 {
@@ -12,30 +10,38 @@ namespace GridSystem
     {
 
         [Header("Grid Settings")]
-        public int gridSizeX;
-        public int gridSizeY;
+        [SerializeField] private int gridSizeX;
+        [SerializeField] private int gridSizeY;
         [Tooltip("Edge size of each individual grid cell")]
-        public float cellDiameter = 1;
+        [SerializeField] private float CellDiameter = 1;
+
         [Tooltip("Bottom left corner of the grid on world positions")]
         [SerializeField] private Vector2 bottomLeftCorner;
+
         [Tooltip("Grid will take the world center as it's center if you check this option")]
-        public bool isCentered;
-        public int ThreadSize;
+        [SerializeField] private bool isCentered = false;
+
+        [Tooltip("How many seperate threads can pathfinding operations work?")]
+        [SerializeField] private int ThreadSize = 1;
+
+        //Private Sets
+
+        public static int threadSize { get; private set; }
+        public static float cellDiameter { get; private set; }
 
         //Privates
 
-        public int MaxSize
-        {
-            get
-            {
-                return gridSizeX * gridSizeY;
-            }
-        }
+        public int MaxSize { get { return gridSizeX * gridSizeY; } }
 
         private Cell[,] gridArray;
 
         private void Awake()
         {
+            //Give value from serializables to private sets
+            threadSize = ThreadSize;
+            cellDiameter = CellDiameter;
+
+            //Calculate the bottom left corner if the grid is centered
             if (isCentered)
                 bottomLeftCorner = new Vector2(-gridSizeX / 2 * cellDiameter, -gridSizeY / 2 * cellDiameter);
 
@@ -43,6 +49,50 @@ namespace GridSystem
 
         }
 
+        /*
+        private void OnDrawGizmos()
+        {
+
+
+            if (isCentered)
+            {
+                for (int x = 0; x < gridSizeX; x++)
+                {
+                    for (int y = 0; y < gridSizeY; y++)
+                    {
+
+                        if (gridArray[x, y].terrainIndex == 1)
+                        {
+
+                            Gizmos.color = Color.red;
+                            Gizmos.DrawWireCube(bottomLeftCorner + new Vector2((cellDiameter / 2) + x * cellDiameter, (cellDiameter / 2) + y * cellDiameter), Vector3.one * (cellDiameter - 0.15f));
+
+                        }  
+                        else
+                        {
+
+                            Gizmos.color = Color.black;
+                            Gizmos.DrawWireCube(bottomLeftCorner + new Vector2((cellDiameter / 2) + x * cellDiameter, (cellDiameter / 2) + y * cellDiameter), Vector3.one * (cellDiameter - 0.15f));
+
+
+                        }
+
+                    }
+                }
+            }
+            else
+            {
+                for (int x = 0; x < gridSizeX; x++)
+                {
+                    for (int y = 0; y < gridSizeY; y++)
+                    {
+                        Gizmos.DrawWireCube(new Vector2((cellDiameter / 2) + x * cellDiameter, (cellDiameter / 2) + y * cellDiameter), Vector3.one * cellDiameter);
+                    }
+                }
+            }
+        }
+
+        */
         private void CreateGrid()
         {
 
@@ -52,7 +102,7 @@ namespace GridSystem
             {
                 for (int y = 0; y < gridSizeY; y++)
                 {
-                    gridArray[x, y] = new Cell(x, y, ThreadSize, 0);
+                    gridArray[x, y] = new Cell(x, y, threadSize, GridToWorldPosition(x, y), 0);
                 }
             }
 
@@ -74,11 +124,31 @@ namespace GridSystem
             return gridArray[Mathf.RoundToInt(gridIndex.x), Mathf.RoundToInt(gridIndex.y)];
         }
 
+        public Vector2 GridToWorldPosition(int _gridIndexX,int _gridIndexY)
+        {
+
+            Vector2 gridIndex = new Vector2(_gridIndexX, _gridIndexY); //Take the grid index
+
+            Vector2 worldPosition = new Vector2((gridIndex.x * cellDiameter) + (cellDiameter / 2), (gridIndex.y * cellDiameter) + (cellDiameter / 2));  // Multiply with radius
+
+            worldPosition = GridToWorldMatrix(worldPosition); //Convert to world matrix
+
+            return worldPosition;
+        }
+
         public Vector2 WorldToGridMatrix(Vector2 _worldPosition) //Removes the world offset from given position 
         {
 
             Vector2 worldPositionWithoutOffset = _worldPosition - bottomLeftCorner;
             return worldPositionWithoutOffset;
+
+        }
+
+        public Vector2 GridToWorldMatrix(Vector2 _gridPosition) //Removes the world offset from given position 
+        {
+
+            Vector2 worldPositionWithOffset = _gridPosition + bottomLeftCorner;
+            return worldPositionWithOffset;
 
         }
         public List<Cell> GetNeighboringCells(Cell neighborCell)
@@ -122,6 +192,9 @@ namespace GridSystem
         public int gridX { get; private set; } //X Index on grid
         public int gridY { get; private set; } //Y Index on grid
 
+        public Vector2 worldPosition { get; private set; } //World position of the cell
+      
+
         //Pathfinding is using arrays to work simultaneously
 
         public int[] gCost; //Distance between start of the path and this cell
@@ -133,11 +206,14 @@ namespace GridSystem
         public int[] HeapIndex { get; set; } //Index in heap array
 
 
-        public Cell(int _gridX, int _gridY, int threadSize, int _terrainIndex = 0)
+        public Cell(int _gridX, int _gridY, int threadSize,Vector2 _worldPosition, int _terrainIndex = 0)
         {
             gridX = _gridX;
             gridY = _gridY;
             terrainIndex = _terrainIndex;
+            worldPosition = _worldPosition;
+
+            //Pathfinding informations
 
             gCost = new int[threadSize];
             hCost = new int[threadSize];
@@ -171,6 +247,7 @@ namespace GridSystem
 
     public class GridMath
     {
+
         public static float DivideAndFloorToDivisor(float dividend, float divisor)
         {
 

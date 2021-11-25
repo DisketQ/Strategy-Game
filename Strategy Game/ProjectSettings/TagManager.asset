@@ -3,7 +3,9 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - GridObject
+  - PoolingManager
   layers:
   - Default
   - TransparentFX
@@ -40,4 +42,13 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: BeforeUI
+    uniqueID: 2624543969
+    locked: 0
+  - name: UI
+    uniqueID: 2395610281
+    locked: 0
+  - name: AfterUI
+    uniqueID: 1425112795
     locked: 0
