@@ -62,11 +62,11 @@ public class Pathfinding : MonoBehaviour
     public List<Cell> FindPath(Vector3 _startPos, Vector3 _targetPos, int _threadIndex)
     {
 
+        UnityEngine.Debug.Log(_startPos + "   " + _targetPos);
+
         Cell startCell = GridReference.WorldPositionToCell(_startPos); //Gets the closest cell to the starting position
         Cell targetCell = GridReference.WorldPositionToCell(_targetPos); //Gets the closest cell to the target position
 
-        UnityEngine.Debug.Log(startCell.gridX + " " + startCell.gridY);
-        UnityEngine.Debug.Log(targetCell.gridX + " " + targetCell.gridY);
 
         Heap<Cell> openList = new Heap<Cell>(GridReference.MaxSize, _threadIndex); //Heap List of cells for the open list
         HashSet<Cell> closedList = new HashSet<Cell>(); //Hashset of cells for the closed list

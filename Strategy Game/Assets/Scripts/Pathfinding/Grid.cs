@@ -29,9 +29,11 @@ namespace GridSystem
         public static int threadSize { get; private set; }
         public static float cellDiameter { get; private set; }
 
-        //Privates
-
+        //Only get
         public int MaxSize { get { return gridSizeX * gridSizeY; } }
+
+        public int GridSizeX { get { return gridSizeX; } }
+        public int GridSizeY { get { return gridSizeY; } }
 
         private Cell[,] gridArray;
 
@@ -49,50 +51,7 @@ namespace GridSystem
 
         }
 
-        /*
-        private void OnDrawGizmos()
-        {
 
-
-            if (isCentered)
-            {
-                for (int x = 0; x < gridSizeX; x++)
-                {
-                    for (int y = 0; y < gridSizeY; y++)
-                    {
-
-                        if (gridArray[x, y].terrainIndex == 1)
-                        {
-
-                            Gizmos.color = Color.red;
-                            Gizmos.DrawWireCube(bottomLeftCorner + new Vector2((cellDiameter / 2) + x * cellDiameter, (cellDiameter / 2) + y * cellDiameter), Vector3.one * (cellDiameter - 0.15f));
-
-                        }  
-                        else
-                        {
-
-                            Gizmos.color = Color.black;
-                            Gizmos.DrawWireCube(bottomLeftCorner + new Vector2((cellDiameter / 2) + x * cellDiameter, (cellDiameter / 2) + y * cellDiameter), Vector3.one * (cellDiameter - 0.15f));
-
-
-                        }
-
-                    }
-                }
-            }
-            else
-            {
-                for (int x = 0; x < gridSizeX; x++)
-                {
-                    for (int y = 0; y < gridSizeY; y++)
-                    {
-                        Gizmos.DrawWireCube(new Vector2((cellDiameter / 2) + x * cellDiameter, (cellDiameter / 2) + y * cellDiameter), Vector3.one * cellDiameter);
-                    }
-                }
-            }
-        }
-
-        */
         private void CreateGrid()
         {
 
@@ -124,6 +83,32 @@ namespace GridSystem
             return gridArray[Mathf.RoundToInt(gridIndex.x), Mathf.RoundToInt(gridIndex.y)];
         }
 
+        public Vector2 WorldPositionToGridArray(Vector2 _worldPosition)
+        {
+
+            Vector2 gridIndex = new Vector2(0, 0);
+
+            _worldPosition = WorldToGridMatrix(_worldPosition); //Transform the world matrix to grid matrix by moving zero to bottom left of the grid
+
+            gridIndex.x = GridMath.DivideAndFloorToDivisor(_worldPosition.x, cellDiameter); //Divide with cellDiameter and floor to cellDiameter to get the grid index
+            gridIndex.y = GridMath.DivideAndFloorToDivisor(_worldPosition.y, cellDiameter); //Divide with cellDiameter and floor to cellDiameter to get the grid index  
+
+            gridIndex.x = Mathf.Clamp(gridIndex.x, 0, gridSizeX - 1); //Clamp the index between 0 and grid size
+            gridIndex.y = Mathf.Clamp(gridIndex.y, 0, gridSizeX - 1); //Clamp the index between 0 and grid size
+
+            return gridIndex;
+        }
+
+        public Cell GridPositionToCell(int gridX, int gridY) //Removes the world offset from given position 
+        {
+
+            gridX  = Mathf.Clamp(gridX, 0, gridSizeX - 1); //Clamp the index between 0 and grid size
+            gridY = Mathf.Clamp(gridY, 0, gridSizeY - 1); //Clamp the index between 0 and grid size
+
+            return gridArray[gridX, gridY];
+
+        }
+
         public Vector2 GridToWorldPosition(int _gridIndexX,int _gridIndexY)
         {
 
@@ -151,6 +136,8 @@ namespace GridSystem
             return worldPositionWithOffset;
 
         }
+
+    
         public List<Cell> GetNeighboringCells(Cell neighborCell)
         {
 
@@ -182,6 +169,46 @@ namespace GridSystem
         }
 
 
+        //Collisions
+
+        public IStaticUnit StaticCollisionCheckOnPosition(Vector2 _worldPosition)
+        {
+
+            Vector2 gridIndex = WorldPositionToGridArray(_worldPosition);
+
+            Cell chosenCell = gridArray[Mathf.FloorToInt(gridIndex.x), Mathf.FloorToInt(gridIndex.y)];
+
+            return chosenCell.staticUnit;
+
+
+        }
+
+        public IDynamicUnit DynamicCollisionCheckOnPosition(Vector2 _worldPosition)
+        {
+            Vector2 gridIndex = WorldPositionToGridArray(_worldPosition);
+
+            Cell chosenCell = gridArray[Mathf.FloorToInt(gridIndex.x), Mathf.FloorToInt(gridIndex.y)];
+
+            return chosenCell.dynamicUnitList[0];
+        }
+
+        public bool SimpleCollisionCheckOnPosition(Vector2 _worldPosition)
+        {
+            Vector2 gridIndex = WorldPositionToGridArray(_worldPosition);
+
+            Cell _cell = gridArray[Mathf.FloorToInt(gridIndex.x), Mathf.FloorToInt(gridIndex.y)];
+
+            if (_cell.dynamicUnitList.Count > 0 || _cell.staticUnit != null)
+                return true;
+
+            return false;
+
+        }
+
+
+      
+
+        
 
     }
 
@@ -189,6 +216,7 @@ namespace GridSystem
     {
 
         public int terrainIndex; //Like 0 = Grass , 1 = Wall , 2 = Mud
+        public int defaultTerrainIndex { get; private set; }
         public int gridX { get; private set; } //X Index on grid
         public int gridY { get; private set; } //Y Index on grid
 
@@ -199,11 +227,15 @@ namespace GridSystem
 
         public int[] gCost; //Distance between start of the path and this cell
         public int[] hCost; //Distance between end of the path and this cell
-        public int[] fCost; // gCost + hCost
 
         public Cell[] previousCellOnPath; //Used to record previous path in pathfinding
 
         public int[] HeapIndex { get; set; } //Index in heap array
+
+        //Collisions
+
+        public List<IDynamicUnit> dynamicUnitList;
+        public IStaticUnit staticUnit;
 
 
         public Cell(int _gridX, int _gridY, int threadSize,Vector2 _worldPosition, int _terrainIndex = 0)
@@ -211,15 +243,20 @@ namespace GridSystem
             gridX = _gridX;
             gridY = _gridY;
             terrainIndex = _terrainIndex;
+            defaultTerrainIndex = _terrainIndex;
             worldPosition = _worldPosition;
 
             //Pathfinding informations
 
             gCost = new int[threadSize];
             hCost = new int[threadSize];
-            fCost = new int[threadSize];
             previousCellOnPath = new Cell[threadSize];
             HeapIndex = new int[threadSize];
+
+            //Collision
+
+            dynamicUnitList = new List<IDynamicUnit>();
+            staticUnit = null;
         }
 
         public int CompareTo(Cell otherCell, int _threadIndex)
@@ -242,7 +279,72 @@ namespace GridSystem
 
         }
 
+        public void UpdateCollision() //Update the collision with SimpleCollisionCheck
+        {
 
+            if (SimpleCollisionCheck()) 
+            {
+
+                terrainIndex = 1;
+
+            }
+            else 
+            {
+
+                terrainIndex = defaultTerrainIndex;
+
+            }
+
+        }
+
+        private bool SimpleCollisionCheck() //Update the collision by checking dynamic and static units
+        {
+            if (dynamicUnitList.Count > 0 || staticUnit != null)
+                return true;
+
+            return false;
+
+        }
+
+        public void PlaceDynamicUnit(IDynamicUnit _dynamicUnit) //Add dynamic unit to list
+        {
+
+            dynamicUnitList.Add(_dynamicUnit);
+
+            UpdateCollision();
+
+        }
+
+        public void RemoveDynamicUnit(IDynamicUnit _dynamicUnit) //Remove dynamic unit from list
+        {
+
+            if (!dynamicUnitList.Contains(_dynamicUnit)) //If it doesnt contain the item, then return
+                return;
+
+            dynamicUnitList.Remove(_dynamicUnit);
+
+            UpdateCollision();
+
+        }
+
+        public void PlaceStaticUnit(IStaticUnit _staticUnit) 
+        {
+
+           staticUnit = _staticUnit;
+
+            UpdateCollision();
+
+        }
+        public void RemoveStaticUnit() 
+        {
+
+            staticUnit = null;
+
+            UpdateCollision();
+
+        }
+
+    
     }
 
     public class GridMath
@@ -266,6 +368,28 @@ namespace GridSystem
 
             return ix + iy; //Return the sum
         }
+
+    }
+
+    public interface IStaticUnit
+    {
+
+        void SetUniquePoint(Vector2 _point);
+        Vector2 GetUniquePoint();
+
+        void SetSpawnPoint(Vector2 _point);
+        Vector2 GetSpawnPoint();
+        int GetUIIndex();
+        void DamageUnit(float _damageAmount);
+
+
+
+    }
+
+    public interface IDynamicUnit : IPathReceiver
+    {
+
+
 
     }
 

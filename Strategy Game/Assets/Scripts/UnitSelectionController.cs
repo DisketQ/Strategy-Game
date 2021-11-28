@@ -7,8 +7,16 @@ public class UnitSelectionController : MonoBehaviour
 
     LineRenderer lineRenderer;
 
-    private Vector2 firstPosition;
-    private Vector2 secondPosition;
+
+    //Visuals
+
+    private Vector2 firstPositionRectangle;
+    private Vector2 secondPositionRectangle;
+
+    //Logic
+
+    private Vector2 firstPositionSelection;
+    private Vector2 secondPositionSelection;
 
     // Start is called before the first frame update
     void Start()
@@ -24,35 +32,57 @@ public class UnitSelectionController : MonoBehaviour
     void Update()
     {
 
-        GetMousePositions();
+        GetMousePositionsForRectangle();
 
-        DrawRectangle(firstPosition,secondPosition);
+        GetMousePositionsForSelection();
+
+        DrawRectangle(firstPositionRectangle, secondPositionRectangle);
 
     }
 
-    private void GetMousePositions() 
+    private void GetMousePositionsForSelection()
     {
 
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
 
-            firstPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            firstPositionSelection = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+        }
+
+
+        if (Input.GetKeyUp(KeyCode.Mouse0))
+        {
+
+
+            secondPositionSelection = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+        }
+
+    }
+    private void GetMousePositionsForRectangle() 
+    {
+
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+
+            firstPositionRectangle = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
         }
 
         if (Input.GetKey(KeyCode.Mouse0))
         {
 
-            secondPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            secondPositionRectangle = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
         }
 
         if (Input.GetKeyUp(KeyCode.Mouse0))
         {
 
-            firstPosition = new Vector2(0, -100);
+            firstPositionRectangle = new Vector2(0, -1000);
 
-            secondPosition = new Vector2(0, -100);
+            secondPositionRectangle = new Vector2(0, -1000);
 
         }
 

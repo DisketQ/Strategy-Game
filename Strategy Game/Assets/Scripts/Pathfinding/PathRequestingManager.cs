@@ -99,25 +99,18 @@ public class PathRequestingManager : MonoBehaviour
 
             if(pathCallSocketArray[i].pathReceiver == _pathReceiver) //If found
             {
-
                 pathCallSocketArray[i].workingThread.Abort(); //Stop it
-
                 return;
-
             }
 
         }
 
         for (int i = 0; i < waitingPathCalls.Count; i++) //Otherwise search in the queue
         {
-
             if (waitingPathCalls[i].pathReceiver == _pathReceiver) //If there is one
             {
-
                 waitingPathCalls.RemoveAt(i); //Kill the queue
-
                 return;
-
             }
 
         }
@@ -158,7 +151,6 @@ public class PathCallSocket //Class for calling and sending paths to receivers
         if(_waitingCallList.Count > 0) //If there is a call waiting in queue
         {
 
-            UnityEngine.Debug.Log("WASHEREFORSURE");
 
             PathCallBox _callBox = _waitingCallList[0]; //Take the item in the queue
 
@@ -224,12 +216,3 @@ public interface IPathReceiver
 
 }
 
-public class TestClass : IPathReceiver
-{
-    public List<Cell> path { get; set; }
-
-    public void GetPath(List<Cell> _path)
-    {
-        
-    }
-}

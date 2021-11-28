@@ -5,36 +5,30 @@ using UnityEngine;
 public class PoolSpawner : MonoBehaviour
 {
 
-    public List<Pool> poolList = new List<Pool>();
+    [SerializeField] private List<Pool> poolList = new List<Pool>(); //List of serializable pools
 
-    private Dictionary<string, Queue<IPoolable>> poolDictionary = new Dictionary<string, Queue<IPoolable>>();
+    private Dictionary<string, Queue<GameObject>> poolDictionary = new Dictionary<string, Queue<GameObject>>();
 
-    public Vector3 deadZonePosition;
+    [SerializeField] private Vector3 deadZonePosition; //Dead zone to move the non active objects
 
-    public Transform garbageCollector;
+    [SerializeField] private Transform garbageCollector; //Object to put spawned objects
 
     private void Awake()
     {
 
-       
-
         for (int i = 0; i < poolList.Count; i++)
         {
-            AddPoolToDictionary(poolList[i].tag, poolList[i].prefab, poolList[i].size);
+            AddPoolToDictionary(poolList[i]); //Move pools from serializable pool to dictionary
         }
-
-        Debug.Log(poolDictionary.Count);
 
     }
 
-    public void AddPoolToDictionary(string _tag, GameObject _prefab, int _size)
+    public void AddPoolToDictionary(Pool _pool)
     {
 
-        Pool createdPool = new Pool(_tag, _prefab, _size);
+        poolDictionary.Add(_pool.tag, new Queue<GameObject>()); //Move it to the dictionary
 
-        poolDictionary.Add(createdPool.tag, new Queue<IPoolable>());
-
-        PoolSpawn(createdPool);
+        PoolSpawn(_pool); //Spawn the pool items
 
     }
 
@@ -51,27 +45,37 @@ public class PoolSpawner : MonoBehaviour
         for (int i = 0; i < givenPool.size; i++)
         {
 
-            IPoolable instantiatedPoolable = Instantiate(givenPool.prefab).GetComponent<IPoolable>();
+            GameObject instantiatedGameObject = Instantiate(givenPool.prefab); //Instantiate the object
 
-            instantiatedPoolable.GetGameObject().transform.SetParent(garbageCollector);
+            instantiatedGameObject.transform.SetParent(garbageCollector); //Set parent
 
-            poolDictionary[givenPool.tag].Enqueue(instantiatedPoolable);
+            poolDictionary[givenPool.tag].Enqueue(instantiatedGameObject); //Add it to the dictionary
+
+            instantiatedGameObject.SetActive(false); //Deactivate object
+
 
             //First Spawn Behaviour
 
-            instantiatedPoolable.isInPool = true; //Now is in pool
+            IPoolable poolable = instantiatedGameObject.GetComponent<IPoolable>();
 
-            instantiatedPoolable.FirstSpawnBehaviour();
+            if (poolable != null) 
+            {
 
-            instantiatedPoolable.GetGameObject().SetActive(false);
+
+                poolable.FirstSpawnBehaviour(); //Execute the first spawn behaviour of IPoolable
+
+              
+            }
+
+     
 
         }
 
     }
-    public GameObject spawnObject(string poolTag, Vector3 position, Quaternion rotation, bool executeSpawnBehaviour)
+    public GameObject spawnObject(string poolTag, Vector3 position , Quaternion rotation)
     {
 
-        if (!poolDictionary[poolTag].Peek().isInPool) 
+        if (poolDictionary[poolTag].Peek().activeSelf) 
         {
 
             //Not enough objects in pool 
@@ -81,30 +85,21 @@ public class PoolSpawner : MonoBehaviour
         
         }
 
-        IPoolable spawnedPoolable = poolDictionary[poolTag].Dequeue(); 
+        GameObject spawnedObject = poolDictionary[poolTag].Dequeue();  //Get one item from the queue
 
-        spawnedPoolable.GetGameObject().transform.position = position;
+        spawnedObject.transform.position = position; //Set the position
 
-        spawnedPoolable.GetGameObject().transform.localRotation = rotation;
+        spawnedObject.transform.localRotation = rotation; //Rotation
 
-        poolDictionary[poolTag].Enqueue(spawnedPoolable);
+        poolDictionary[poolTag].Enqueue(spawnedObject); //And put it back to queue
 
-        spawnedPoolable.isInPool = false; //Not in pool anymore
 
         //Activate if it is inactive
 
-        if (!spawnedPoolable.GetGameObject().activeSelf)
-            spawnedPoolable.GetGameObject().SetActive(true);
+        if (!spawnedObject.activeSelf)
+            spawnedObject.SetActive(true);
 
-        //IPoolable behaviour
-
-        if(executeSpawnBehaviour)
-        spawnedPoolable.SpawnBehaviour();
-
-
-        //Returned the spawned gameobject
-        return spawnedPoolable.GetGameObject();
-
+        return spawnedObject;  //Returned the spawned gameobject
 
     }
 
@@ -117,14 +112,6 @@ public class PoolSpawner : MonoBehaviour
 
         IPoolable givenPoolable = givenObject.GetComponent<IPoolable>();
 
-        if (givenPoolable != null) 
-        {
-
-            givenPoolable.isInPool = true; //Now is in pool
-
-            givenPoolable.DespawnBehaviour();
-
-        }
        
 
         //
@@ -149,7 +136,6 @@ public interface IPoolable
 
     GameObject GetGameObject();
 
-    bool isInPool { get; set; }
 
 }
 
