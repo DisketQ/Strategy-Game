@@ -85,7 +85,7 @@ public class BuildingSelector : MonoBehaviour
         StartCoroutine(SetUniquePointOnCurrentStaticUnit());
 
     }
-    public IEnumerator SetUniquePointOnCurrentStaticUnit() 
+    public IEnumerator SetUniquePointOnCurrentStaticUnit() //Set unique point of curent building
     {
         
 

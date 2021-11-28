@@ -373,7 +373,9 @@ namespace GridSystem
 
     public interface IStaticUnit
     {
-
+        //Unique point is for spawn destination at barracks
+        //And can be used for special effects on other buildings
+        
         void SetUniquePoint(Vector2 _point);
         Vector2 GetUniquePoint();
 
