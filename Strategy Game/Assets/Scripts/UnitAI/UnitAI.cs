@@ -92,7 +92,6 @@ public class UnitAI : MonoBehaviour,IDynamicUnit,IPoolable
     public void GetPath(List<Cell> _path) //Get the path and move to walking state
     {
 
-        Debug.Log("IS THERE?");
         if (_path == null) //Return if there is no path
             return;
 
@@ -105,7 +104,6 @@ public class UnitAI : MonoBehaviour,IDynamicUnit,IPoolable
 
         }
 
-        Debug.Log("THERE IS");
 
     }
 
@@ -212,10 +210,7 @@ public class SoldierUnitWalkState : SoldierUnitBaseState
         if (cellToWalk.terrainIndex == 1) //If path is blocked
         {
 
-            _manager.SwitchState(_manager.idleState); //Return the idle state
-
-            if(_manager.path[_manager.path.Count - 1].terrainIndex != 1)
-            _manager.pathRequestManager.TryPath(_manager, _manager.transform.position, cellToWalk.worldPosition);  //Request a path again
+            _manager.pathRequestManager.TryPath(_manager, _manager.transform.position, _manager.path[_manager.path.Count - 1].worldPosition);  //Request a path again
 
             return false;
         
