@@ -62,11 +62,15 @@ public class Pathfinding : MonoBehaviour
     public List<Cell> FindPath(Vector3 _startPos, Vector3 _targetPos, int _threadIndex)
     {
 
+        UnityEngine.Debug.Log(_startPos + "   " + _targetPos);
+
         Cell startCell = GridReference.WorldPositionToCell(_startPos); //Gets the closest cell to the starting position
         Cell targetCell = GridReference.WorldPositionToCell(_targetPos); //Gets the closest cell to the target position
 
-        UnityEngine.Debug.Log(startCell.gridX + " " + startCell.gridY);
-        UnityEngine.Debug.Log(targetCell.gridX + " " + targetCell.gridY);
+        if(targetCell.terrainIndex == 1) 
+        {
+            targetCell = LookForClosestAvailableCell(targetCell, _threadIndex);
+        }
 
         Heap<Cell> openList = new Heap<Cell>(GridReference.MaxSize, _threadIndex); //Heap List of cells for the open list
         HashSet<Cell> closedList = new HashSet<Cell>(); //Hashset of cells for the closed list
@@ -138,6 +142,47 @@ public class Pathfinding : MonoBehaviour
 
     }
 
+    private Cell LookForClosestAvailableCell(Cell startCell, int _threadIndex)
+    {
+
+        Heap<Cell> openList = new Heap<Cell>(GridReference.MaxSize, _threadIndex); //Heap List of cells for the open list
+        HashSet<Cell> closedList = new HashSet<Cell>(); //Hashset of cells for the closed list
+
+        openList.Add(startCell);//Add the starting Cell to the open list to begin the program
+
+        while (openList.Count > 0)//While there is something in the open list
+        {
+            Cell currentCell = openList.RemoveFirst(); //Remove the first item in the heap then rearrange the rest
+
+            closedList.Add(currentCell);//And add it to the closed list
+
+            if (currentCell.terrainIndex != 1)//If the current Cell is available, then return it
+            {
+                return currentCell;
+
+            }
+
+            foreach (Cell neighborCell in GridReference.GetNeighboringCells(currentCell))//Loop through each neighbor of the current Cell
+            {
+
+                if (!openList.Contains(neighborCell))//If the f cost is greater than the g cost or it is not in the open list
+                {
+                
+                    if (!openList.Contains(neighborCell))//If the neighbor is not in the openlist
+                    {
+                        openList.Add(neighborCell); //Add it to the list
+                    }
+                    {
+                        openList.UpdateItem(neighborCell); //Update the item if it is in the list
+                    }
+                }
+            }
+
+        }
+
+        return null;
+
+    }
 
 }
 
