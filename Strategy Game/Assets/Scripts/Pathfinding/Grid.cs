@@ -51,6 +51,7 @@ namespace GridSystem
 
         }
 
+      
 
         private void CreateGrid()
         {
@@ -297,7 +298,7 @@ namespace GridSystem
 
         }
 
-        private bool SimpleCollisionCheck() //Update the collision by checking dynamic and static units
+        public bool SimpleCollisionCheck() //Check collision by checking dynamic and static units
         {
             if (dynamicUnitList.Count > 0 || staticUnit != null)
                 return true;
@@ -379,8 +380,10 @@ namespace GridSystem
         void SetUniquePoint(Vector2 _point);
         Vector2 GetUniquePoint();
 
+        //Spawn positions for unit spawns
         void SetSpawnPoint(Vector2 _point);
         Vector2 GetSpawnPoint();
+
         int GetUIIndex();
         void DamageUnit(float _damageAmount);
 
@@ -392,6 +395,8 @@ namespace GridSystem
     {
 
 
+        //Move dynamic unit to position
+        void GoToPosition(Vector2 _point);
 
     }
 

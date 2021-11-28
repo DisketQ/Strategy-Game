@@ -4,6 +4,7 @@ using UnityEngine;
 using GridSystem;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System;
 public class Pathfinding : MonoBehaviour
 {
     GridSystem.Grid GridReference; //Grid class reference
@@ -18,58 +19,17 @@ public class Pathfinding : MonoBehaviour
         GridReference = GetComponent<GridSystem.Grid>();//Get a reference to the game manager
     }
 
-    private void Start()
-    {
-            
-    }
-
-    private void Update()
-    {
-
-
-        if (Input.GetKeyDown(KeyCode.Mouse0))
-        {
-
-            Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-            StartPosition = worldPos;
-
-        }
-
-
-        if (Input.GetKeyDown(KeyCode.Mouse1))
-        {
-
-            Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-            TargetPosition = worldPos;
-            
-
-        }
-
-        if (Input.GetKey(KeyCode.Space))
-        {
-
-            Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-            GridReference.WorldPositionToCell(new Vector2(worldPos.x, worldPos.y)).terrainIndex = 1;
-
-        }
-
-    }
 
 
     public List<Cell> FindPath(Vector3 _startPos, Vector3 _targetPos, int _threadIndex)
     {
-
-        UnityEngine.Debug.Log(_startPos + "   " + _targetPos);
 
         Cell startCell = GridReference.WorldPositionToCell(_startPos); //Gets the closest cell to the starting position
         Cell targetCell = GridReference.WorldPositionToCell(_targetPos); //Gets the closest cell to the target position
 
         if(targetCell.terrainIndex == 1) 
         {
-            targetCell = LookForClosestAvailableCell(targetCell, _threadIndex);
+            targetCell = LookForClosestAvailableCell(targetCell);
         }
 
         Heap<Cell> openList = new Heap<Cell>(GridReference.MaxSize, _threadIndex); //Heap List of cells for the open list
@@ -142,17 +102,21 @@ public class Pathfinding : MonoBehaviour
 
     }
 
-    private Cell LookForClosestAvailableCell(Cell startCell, int _threadIndex)
+    public Cell LookForClosestAvailableCell(Cell startCell)
     {
 
-        Heap<Cell> openList = new Heap<Cell>(GridReference.MaxSize, _threadIndex); //Heap List of cells for the open list
+        System.Random random = new System.Random();
+
+        List<Cell> openList = new List<Cell>(); //Heap List of cells for the open list
         HashSet<Cell> closedList = new HashSet<Cell>(); //Hashset of cells for the closed list
 
         openList.Add(startCell);//Add the starting Cell to the open list to begin the program
 
         while (openList.Count > 0)//While there is something in the open list
         {
-            Cell currentCell = openList.RemoveFirst(); //Remove the first item in the heap then rearrange the rest
+            Cell currentCell = openList[random.Next(0,openList.Count)]; //Find a random cell next to current cell
+
+            openList.RemoveAt(0);
 
             closedList.Add(currentCell);//And add it to the closed list
 
@@ -165,17 +129,11 @@ public class Pathfinding : MonoBehaviour
             foreach (Cell neighborCell in GridReference.GetNeighboringCells(currentCell))//Loop through each neighbor of the current Cell
             {
 
-                if (!openList.Contains(neighborCell))//If the f cost is greater than the g cost or it is not in the open list
+                if (!openList.Contains(neighborCell))//If the neighbor is not in the openlist
                 {
-                
-                    if (!openList.Contains(neighborCell))//If the neighbor is not in the openlist
-                    {
-                        openList.Add(neighborCell); //Add it to the list
-                    }
-                    {
-                        openList.UpdateItem(neighborCell); //Update the item if it is in the list
-                    }
+                    openList.Add(neighborCell); //Add it to the list
                 }
+
             }
 
         }
