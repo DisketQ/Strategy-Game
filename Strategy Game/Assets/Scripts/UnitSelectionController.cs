@@ -66,6 +66,7 @@ public class UnitSelectionController : MonoBehaviour
             foreach (var unit in selectedUnitsList)
             {
 
+                unit.CancelMovement();
                 unit.GoToPosition(Camera.main.ScreenToWorldPoint(Input.mousePosition));
 
             }

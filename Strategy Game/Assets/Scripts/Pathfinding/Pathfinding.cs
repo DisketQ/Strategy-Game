@@ -53,7 +53,7 @@ public class Pathfinding : MonoBehaviour
             {
 
 
-                if (neighborCell.terrainIndex == 1 || closedList.Contains(neighborCell))//If the neighbor is a wall or has already been checked
+                if (neighborCell.StaticCollisionCheck() != null || closedList.Contains(neighborCell)) //If the neighbor has a static object or has already been checked
                 {
 
 
