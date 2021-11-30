@@ -17,7 +17,6 @@ public class PathRequestingManager : MonoBehaviour
     private PathCallSocket[] pathCallSocketArray;
     private List<PathCallBox> waitingPathCalls = new List<PathCallBox>();
 
-    Thread pathCallThread;
 
     private void Awake()
     {
@@ -40,14 +39,25 @@ public class PathRequestingManager : MonoBehaviour
         }
     }
 
- 
+
+
+
     public void TryPathThreading(IPathReceiver _pathReceiver, Vector3 _startPos, Vector3 _targetPos) //Check if the thread is busy in this method
     {
 
-        if(pathCallThread == null || !pathCallThread.IsAlive) //If thread is not working
+
+        PathCallSocket freeSocket = null;
+
+        for (int i = 0; i < pathCallSocketArray.Length; i++) //Check if the sockets are available
+        {
+            if (!pathCallSocketArray[i].socketOn) //If socket is not occupied
+                freeSocket = pathCallSocketArray[i]; //Take the socket
+        }
+
+        if (freeSocket != null) //If thread is not working
         {
 
-            pathCallThread = StartThePathThread(_pathReceiver, _startPos, _targetPos,pathCallThread); //Start the thread
+            StartThePathThread(_pathReceiver, _startPos, _targetPos,freeSocket); //Start the thread
 
         }
         else 
@@ -60,33 +70,11 @@ public class PathRequestingManager : MonoBehaviour
     
     }
 
-    public Thread StartThePathThread(IPathReceiver _pathReceiver, Vector3 _startPos, Vector3 _targetPos, Thread _thread)
+    public Thread StartThePathThread(IPathReceiver _pathReceiver, Vector3 _startPos, Vector3 _targetPos,PathCallSocket _socket)
     {
-        _thread = new Thread(() => RequestPath(_pathReceiver, _startPos, _targetPos, _thread));
-        _thread.Start();
-        return _thread;
-    }
-    public void RequestPath(IPathReceiver _pathReceiver,Vector3 _startPos, Vector3 _targetPos,Thread _thread) //Ask for a if one of the sockets is free
-    {
-
-        PathCallSocket freeSocket = null;
-
-        for (int i = 0; i < pathCallSocketArray.Length; i++) //Check if the sockets are available
-        {
-            if (!pathCallSocketArray[i].socketOn) //If socket is not occupied
-                freeSocket = pathCallSocketArray[i]; //Take the socket
-        }
-       
-
-        if (freeSocket != null)  //If there is a free socket
-        {
-            freeSocket.CallForPath(pathFindingReference, _pathReceiver, _startPos, _targetPos, _thread, waitingPathCalls); //Then make the socket call for a path
-        }
-        else 
-        {
-            waitingPathCalls.Add(new PathCallBox(_pathReceiver, _startPos, _targetPos)); //Otherwise queue the call      
-        }
-
+        Thread t = new Thread(() => _socket.CallForPath(pathFindingReference, _pathReceiver, _startPos, _targetPos, waitingPathCalls));
+        t.Start();
+        return t;
     }
 
     public void CancelRequest(IPathReceiver _pathReceiver, List<PathCallBox> _waitingCallList)
@@ -126,7 +114,7 @@ public class PathCallSocket //Class for calling and sending paths to receivers
 {
 
     public bool socketOn { get; private set; } //Is this socket currently working?
-    private int threadIndex; //Thread index of socket
+    public int threadIndex { get; private set; } //Thread index of socket
     public IPathReceiver pathReceiver { get; private set; } //Receiver of the called path
     public Thread workingThread { get; private set; }
     
@@ -135,12 +123,12 @@ public class PathCallSocket //Class for calling and sending paths to receivers
         threadIndex = _threadIndex;
     }
 
-    public void CallForPath(Pathfinding _pathFinding, IPathReceiver _pathReceiver,Vector3 _startPos, Vector3 _targetPos,Thread _workingThread, List<PathCallBox> _waitingCallList) 
+    public void CallForPath(Pathfinding _pathFinding, IPathReceiver _pathReceiver,Vector3 _startPos, Vector3 _targetPos, List<PathCallBox> _waitingCallList) 
     {
 
         pathReceiver = _pathReceiver; //Assign the receiver
 
-        workingThread = _workingThread; //Change the current thread
+        workingThread = Thread.CurrentThread; //Change the current thread
 
         SwitchSocket(true); //Socket is on
 
@@ -156,17 +144,17 @@ public class PathCallSocket //Class for calling and sending paths to receivers
 
             _waitingCallList.RemoveAt(0); //Remove it
 
-            CallForPath(_pathFinding, _callBox.pathReceiver, _callBox.startPosition, _callBox.targetPosition,workingThread, _waitingCallList); //and run the method again
+            CallForPath(_pathFinding, _callBox.pathReceiver, _callBox.startPosition, _callBox.targetPosition, _waitingCallList); //and run the method again
 
-
-        }
-        else 
-        {
-
-            SwitchSocket(false); //Else close the socket
-
+            UnityEngine.Debug.Log("Girildi");
 
         }
+
+
+
+
+        SwitchSocket(false); //Else close the socket
+
 
 
     }
@@ -178,9 +166,8 @@ public class PathCallSocket //Class for calling and sending paths to receivers
 
         pathReceiver.GetPath(_path); //Give the path to receiver
 
-        pathReceiver = null; //Remove the receiver
+    
 
-        SwitchSocket(false); //Make the socket free
 
     }
 
