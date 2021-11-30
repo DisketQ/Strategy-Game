@@ -75,7 +75,7 @@ public class UnitAI : MonoBehaviour,IDynamicUnit,IPoolable
     public void GoToPosition(Vector2 targetPosition) 
     {
 
-        pathRequestManager.TryPathThreading(this, transform.position, targetPosition); //Request for the path
+        pathRequestManager.TryPath(this, transform.position, targetPosition); //Request for the path
 
     }
 
@@ -210,7 +210,7 @@ public class SoldierUnitWalkState : SoldierUnitBaseState
         if (cellToWalk.terrainIndex == 1) //If path is blocked
         {
 
-            _manager.pathRequestManager.TryPathThreading(_manager, _manager.transform.position, _manager.path[_manager.path.Count - 1].worldPosition);  //Request a path again
+            _manager.pathRequestManager.TryPath(_manager, _manager.transform.position, _manager.path[_manager.path.Count - 1].worldPosition);  //Request a path again
 
             return false;
         
