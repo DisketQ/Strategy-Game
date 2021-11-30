@@ -344,8 +344,30 @@ namespace GridSystem
             UpdateCollision();
 
         }
+        public IStaticUnit StaticCollisionCheck( )
+        {
 
-    
+            return staticUnit;
+
+
+        }
+
+        public IDynamicUnit DynamicCollisionCheck()
+        {
+            if(dynamicUnitList.Count > 0) 
+            {
+
+                return dynamicUnitList[0];
+
+            }
+            else 
+            {
+
+                return null;
+            }
+       
+        }
+
     }
 
     public class GridMath
@@ -397,6 +419,8 @@ namespace GridSystem
 
         //Move dynamic unit to position
         void GoToPosition(Vector2 _point);
+        void CancelMovement();
+
 
     }
 

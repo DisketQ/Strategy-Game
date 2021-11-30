@@ -79,6 +79,15 @@ public class UnitAI : MonoBehaviour,IDynamicUnit,IPoolable
 
     }
 
+    public void CancelMovement()
+    {
+        if(path != null)
+        path.Clear();
+
+        pathRequestManager.CancelRequest(this); //Request for the path
+
+    }
+
     public void SwitchState(SoldierUnitBaseState _state) //Switch to another state
     {
 
@@ -207,13 +216,18 @@ public class SoldierUnitWalkState : SoldierUnitBaseState
 
         //Check if path is still available
 
-        if (cellToWalk.terrainIndex == 1) //If path is blocked
+        if (cellToWalk.StaticCollisionCheck() != null) //If path is blocked by a static object
         {
-
             _manager.pathRequestManager.TryPathThreading(_manager, _manager.transform.position, _manager.path[_manager.path.Count - 1].worldPosition);  //Request a path again
 
             return false;
-        
+        }
+
+        if (_manager.path.Count == 1 && _manager.path[_manager.path.Count - 1].DynamicCollisionCheck() != null) //If the destination is blocked by a dynamic object
+        {
+            _manager.pathRequestManager.TryPathThreading(_manager, _manager.transform.position, _manager.path[_manager.path.Count - 1].worldPosition );  //Request a path again
+
+            return false;
         }
 
         Vector2 walkingDirection = cellToWalk.worldPosition - (Vector2)_manager.transform.position; //Take the direction to Cell from Unit
