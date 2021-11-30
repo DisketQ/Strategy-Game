@@ -41,7 +41,7 @@ public class PathRequestingManager : MonoBehaviour
     }
 
  
-    public void TryPath(IPathReceiver _pathReceiver, Vector3 _startPos, Vector3 _targetPos) //Check if the thread is busy in this method
+    public void TryPathThreading(IPathReceiver _pathReceiver, Vector3 _startPos, Vector3 _targetPos) //Check if the thread is busy in this method
     {
 
         if(pathCallThread == null || !pathCallThread.IsAlive) //If thread is not working
@@ -62,9 +62,9 @@ public class PathRequestingManager : MonoBehaviour
 
     public Thread StartThePathThread(IPathReceiver _pathReceiver, Vector3 _startPos, Vector3 _targetPos, Thread _thread)
     {
-        var t = new Thread(() => RequestPath(_pathReceiver, _startPos, _targetPos, _thread));
-        t.Start();
-        return t;
+        _thread = new Thread(() => RequestPath(_pathReceiver, _startPos, _targetPos, _thread));
+        _thread.Start();
+        return _thread;
     }
     public void RequestPath(IPathReceiver _pathReceiver,Vector3 _startPos, Vector3 _targetPos,Thread _thread) //Ask for a if one of the sockets is free
     {
@@ -128,7 +128,7 @@ public class PathCallSocket //Class for calling and sending paths to receivers
     public bool socketOn { get; private set; } //Is this socket currently working?
     private int threadIndex; //Thread index of socket
     public IPathReceiver pathReceiver { get; private set; } //Receiver of the called path
-    public Thread workingThread;
+    public Thread workingThread { get; private set; }
     
     public PathCallSocket(int _threadIndex) 
     {
@@ -140,7 +140,7 @@ public class PathCallSocket //Class for calling and sending paths to receivers
 
         pathReceiver = _pathReceiver; //Assign the receiver
 
-        workingThread = _workingThread; //Change the thread data
+        workingThread = _workingThread; //Change the current thread
 
         SwitchSocket(true); //Socket is on
 
