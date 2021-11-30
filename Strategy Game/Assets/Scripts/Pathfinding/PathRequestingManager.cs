@@ -150,7 +150,11 @@ public class PathCallSocket //Class for calling and sending paths to receivers
         pathReceiver = _pathReceiver; //Assign the receiver
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         workingThread = Thread.CurrentThread; //Change the current thread
+=======
+        workingThread = _workingThread; //Change the thread data
+>>>>>>> parent of c556a24 (Fixed Thread)
 =======
         workingThread = _workingThread; //Change the thread data
 >>>>>>> parent of c556a24 (Fixed Thread)
